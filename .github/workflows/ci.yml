@@ -20,5 +20,5 @@ jobs:
           cache: maven
       - name: Build and test
         run: mvn -B verify
-      - name: Dogfood: check this repo's own links
+      - name: Check this repo's own links
         run: java -jar target/mdlinkcheck.jar --offline README.md
