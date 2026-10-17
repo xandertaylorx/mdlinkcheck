@@ -22,6 +22,12 @@ public final class LinkExtractor {
     /** Autolinks: <https://example.com>. */
     private static final Pattern AUTOLINK = Pattern.compile("<(https?://[^>\\s]+)>");
 
+    /** Opening or closing line of a fenced code block. */
+    private static final Pattern FENCE = Pattern.compile("^\\s{0,3}(```|~~~)");
+
+    /** Inline code spans, which may contain link-like text that is not a link. */
+    private static final Pattern CODE_SPAN = Pattern.compile("`+[^`]*`+");
+
     private LinkExtractor() {
     }
 
@@ -32,9 +38,17 @@ public final class LinkExtractor {
     public static List<Link> extract(Path file, String markdown) {
         List<Link> links = new ArrayList<>();
         String[] lines = markdown.split("\\R", -1);
+        boolean inFence = false;
         for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
             int lineNo = i + 1;
+            if (FENCE.matcher(lines[i]).find()) {
+                inFence = !inFence;
+                continue;
+            }
+            if (inFence) {
+                continue;
+            }
+            String line = CODE_SPAN.matcher(lines[i]).replaceAll(" ");
 
             Matcher ref = REFERENCE.matcher(line);
             if (ref.find()) {
